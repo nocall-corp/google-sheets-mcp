@@ -1,13 +1,7 @@
 {
   "functions": {
-    "api/mcp.ts": {
+    "api/[transport]/route.ts": {
       "maxDuration": 60
     }
-  },
-  "rewrites": [
-    {
-      "source": "/mcp",
-      "destination": "/api/mcp"
-    }
-  ]
+  }
 }
