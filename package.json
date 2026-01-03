@@ -8,8 +8,8 @@
     "deploy": "vercel deploy --prod"
   },
   "dependencies": {
+    "mcp-handler": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@vercel/mcp-adapter": "^0.4.0",
     "googleapis": "^144.0.0",
     "zod": "^3.24.0"
   },

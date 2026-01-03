@@ -1,4 +1,4 @@
-import { initializeMcpApiHandler } from "@vercel/mcp-adapter";
+import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { google, sheets_v4 } from "googleapis";
 
@@ -36,7 +36,7 @@ function extractSpreadsheetId(input: string): string {
   return match ? match[1] : input;
 }
 
-const handler = initializeMcpApiHandler(
+const handler = createMcpHandler(
   (server) => {
     // Tool: List spreadsheets
     server.tool(
@@ -78,7 +78,7 @@ const handler = initializeMcpApiHandler(
       {
         spreadsheet_id: z.string().describe("Spreadsheet ID or URL"),
       },
-      async ({ spreadsheet_id }) => {
+      async ({ spreadsheet_id }: { spreadsheet_id: string }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -113,7 +113,7 @@ const handler = initializeMcpApiHandler(
         spreadsheet_id: z.string().describe("Spreadsheet ID or URL"),
         range: z.string().describe("A1 notation range (e.g., 'Sheet1!A1:D10')"),
       },
-      async ({ spreadsheet_id, range }) => {
+      async ({ spreadsheet_id, range }: { spreadsheet_id: string; range: string }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -149,7 +149,7 @@ const handler = initializeMcpApiHandler(
         range: z.string().describe("A1 notation range (e.g., 'Sheet1!A1')"),
         values: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()]))).describe("2D array of values to write"),
       },
-      async ({ spreadsheet_id, range, values }) => {
+      async ({ spreadsheet_id, range, values }: { spreadsheet_id: string; range: string; values: (string | number | boolean | null)[][] }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -187,7 +187,7 @@ const handler = initializeMcpApiHandler(
         range: z.string().describe("Sheet name or A1 range to append to (e.g., 'Sheet1')"),
         values: z.array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()]))).describe("2D array of rows to append"),
       },
-      async ({ spreadsheet_id, range, values }) => {
+      async ({ spreadsheet_id, range, values }: { spreadsheet_id: string; range: string; values: (string | number | boolean | null)[][] }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -225,7 +225,7 @@ const handler = initializeMcpApiHandler(
         spreadsheet_id: z.string().describe("Spreadsheet ID or URL"),
         range: z.string().describe("A1 notation range to clear (e.g., 'Sheet1!A1:D10')"),
       },
-      async ({ spreadsheet_id, range }) => {
+      async ({ spreadsheet_id, range }: { spreadsheet_id: string; range: string }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -260,7 +260,7 @@ const handler = initializeMcpApiHandler(
         title: z.string().describe("Title for the new spreadsheet"),
         sheet_titles: z.array(z.string()).optional().describe("Optional list of sheet names to create"),
       },
-      async ({ title, sheet_titles }) => {
+      async ({ title, sheet_titles }: { title: string; sheet_titles?: string[] }) => {
         try {
           const sheets = getGoogleSheetsClient();
 
@@ -269,7 +269,7 @@ const handler = initializeMcpApiHandler(
           };
 
           if (sheet_titles && sheet_titles.length > 0) {
-            requestBody.sheets = sheet_titles.map((sheetTitle) => ({
+            requestBody.sheets = sheet_titles.map((sheetTitle: string) => ({
               properties: { title: sheetTitle },
             }));
           }
@@ -307,7 +307,7 @@ const handler = initializeMcpApiHandler(
         spreadsheet_id: z.string().describe("Spreadsheet ID or URL"),
         requests: z.array(z.record(z.any())).describe("Array of update requests"),
       },
-      async ({ spreadsheet_id, requests }) => {
+      async ({ spreadsheet_id, requests }: { spreadsheet_id: string; requests: Record<string, unknown>[] }) => {
         try {
           const sheets = getGoogleSheetsClient();
           const id = extractSpreadsheetId(spreadsheet_id);
@@ -334,10 +334,9 @@ const handler = initializeMcpApiHandler(
       }
     );
   },
+  {},
   {
-    capabilities: {
-      tools: {},
-    },
+    basePath: "/api",
   }
 );
 
