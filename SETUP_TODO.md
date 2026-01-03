@@ -55,7 +55,7 @@ https://vercel.com/nocall-projects/google-sheets-mcp/settings/environment-variab
 ### 6. スプレッドシートの共有設定
 
 アクセスしたいスプレッドシートを Service Account のメールアドレスに共有:
-- メールアドレス: `sheets-mcp@YOUR_PROJECT.iam.gserviceaccount.com`
+- メールアドレス: `sheets-mcp@nocallai.iam.gserviceaccount.com`
 - 権限: 編集者
 
 ### 7. 再デプロイ
