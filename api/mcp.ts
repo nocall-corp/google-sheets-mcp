@@ -101,6 +101,33 @@ const toolDefinitions = [
       },
       required: ["title"]
     }
+  },
+  {
+    name: "add_sheet",
+    description: "Add a new sheet to a spreadsheet",
+    inputSchema: {
+      type: "object",
+      properties: {
+        spreadsheet_id: { type: "string", description: "Spreadsheet ID or URL" },
+        title: { type: "string", description: "Name for the new sheet" },
+        index: { type: "number", description: "Optional position (0-based index)" }
+      },
+      required: ["spreadsheet_id", "title"]
+    }
+  },
+  {
+    name: "duplicate_sheet",
+    description: "Duplicate/copy an existing sheet within a spreadsheet",
+    inputSchema: {
+      type: "object",
+      properties: {
+        spreadsheet_id: { type: "string", description: "Spreadsheet ID or URL" },
+        sheet_id: { type: "number", description: "Source sheet ID (get from get_spreadsheet_info)" },
+        new_title: { type: "string", description: "Name for the duplicated sheet (optional)" },
+        insert_index: { type: "number", description: "Position for the new sheet (optional)" }
+      },
+      required: ["spreadsheet_id", "sheet_id"]
+    }
   }
 ];
 
@@ -172,6 +199,41 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         spreadsheetUrl: response.data.spreadsheetUrl,
         sheets: response.data.sheets?.map(s => s.properties?.title)
       };
+    }
+    case "add_sheet": {
+      const id = extractSpreadsheetId(args.spreadsheet_id as string);
+      const response = await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: id,
+        requestBody: {
+          requests: [{
+            addSheet: {
+              properties: {
+                title: args.title as string,
+                index: args.index as number | undefined
+              }
+            }
+          }]
+        }
+      });
+      const props = response.data.replies?.[0]?.addSheet?.properties;
+      return { sheetId: props?.sheetId, title: props?.title, index: props?.index };
+    }
+    case "duplicate_sheet": {
+      const id = extractSpreadsheetId(args.spreadsheet_id as string);
+      const response = await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: id,
+        requestBody: {
+          requests: [{
+            duplicateSheet: {
+              sourceSheetId: args.sheet_id as number,
+              newSheetName: args.new_title as string | undefined,
+              insertSheetIndex: args.insert_index as number | undefined
+            }
+          }]
+        }
+      });
+      const props = response.data.replies?.[0]?.duplicateSheet?.properties;
+      return { sheetId: props?.sheetId, title: props?.title, index: props?.index };
     }
     default:
       throw new Error(`Unknown tool: ${name}`);
